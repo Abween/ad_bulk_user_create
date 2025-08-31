@@ -1,0 +1,27 @@
+---
+galaxy_info:
+  role_name: ad_bulk_user_create
+  author: Jehad Muzahem
+  description: >
+    Automates bulk creation of Active Directory users using Ansible and PowerShell.
+    Includes dynamic error handling, password generation, and audit-friendly output.
+  license: MIT
+  min_ansible_version: '2.12'
+
+  platforms:
+    - name: Windows
+      versions:
+        - '2022'
+        - '2025'
+
+  galaxy_tags:
+    - active_directory
+    - windows
+    - user_management
+    - automation
+    - powershell
+    - bulk_create
+    - identity
+    - provisioning
+
+dependencies: []
