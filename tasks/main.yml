@@ -1,0 +1,129 @@
+- name: Parse users list from variable
+  set_fact:
+    users: "{{ users_json.Users }}"
+  tags:
+    - parse
+    - ad_users
+
+- name: Add AD user(s)
+  ansible.windows.win_powershell:
+    script: |
+      param(
+        [string]$UserDescription,
+        [string]$UserDomain,
+        [string]$UserEmail,
+        [string]$UserFirstName,
+        [string]$UserLastName,
+        [string]$UserPhone,
+        [string]$UserType
+      )
+
+      $serverName = $UserDomain
+      $user = Get-ADUser -Filter "mail -eq '$UserEmail'" -Properties mail -Server $serverName -ErrorAction SilentlyContinue
+
+      if (!$user) {
+          # User does not exist, create account
+          $minPasswordLength = (Get-ADDefaultDomainPasswordPolicy -Server $serverName).MinPasswordLength
+          Add-Type -AssemblyName System.Web
+          $tempPassword = [Web.Security.Membership]::GeneratePassword($minPasswordLength + 12, 4)
+          $securePassword = ConvertTo-SecureString $tempPassword -AsPlainText -Force
+          $SamAccountName = ($UserFirstName.Substring(0,1) + $UserLastName -replace ' ', '').ToLower()
+
+          try {
+          New-ADUser -Name "$UserFirstName $UserLastName" `
+                     -GivenName $UserFirstName `
+                     -Surname $UserLastName `
+                     -SamAccountName $SamAccountName `
+                     -Server $serverName `
+                     -UserPrincipalName "$SamAccountName@$UserDomain" `
+                     -Path $UserType `
+                     -AccountPassword $securePassword `
+                     -Enabled $true `
+                     -PasswordNeverExpires $false `
+                     -DisplayName "$UserFirstName $UserLastName" `
+                     -Description $UserDescription `
+                     -EmailAddress $UserEmail `
+                     -OfficePhone $UserPhone
+
+          $result = @{
+              userExists     = $false
+              userCreated    = $true
+              creationError  = ""
+              creationStatus = "User $UserFirstName $UserLastName created successfully."
+              userFirstName  = $UserFirstName
+              userId         = $SamAccountName
+              tempPassword   = $tempPassword
+              emailAddress   = $UserEmail}
+          }
+          catch {
+          $result = @{
+              userExists     = $false
+              userCreated    = $false
+              creationError  = $_.Exception.Message
+              creationStatus = "Failed to create user: $_.Exception.Message"
+              userFirstName  = $UserFirstName
+              userId         = $SamAccountName
+              tempPassword   = ""
+              emailAddress   = $UserEmail}
+
+          }
+      }
+      else {
+          # User exists, return details
+          $result = @{
+              userExists     = $true
+              userCreated    = $false
+              creationError  = ""
+              creationStatus = "User already exists in domain $serverName."
+              userFirstName  = $UserFirstName
+              userId         = $user.SamAccountName
+              userPrincipal  = $user.UserPrincipalName
+              userDN         = $user.DistinguishedName
+              emailAddress   = $UserEmail
+              tempPassword   = ""
+          }
+      }
+
+      Write-Output ($result | ConvertTo-Json -Compress)
+    parameters:
+      UserDescription: "{{ item.user_description }}"
+      UserDomain: "{{ item.user_domain }}"
+      UserEmail: "{{ item.user_email_address }}"
+      UserFirstName: "{{ item.user_first_name }}"
+      UserLastName: "{{ item.user_last_name }}"
+      UserPhone: "{{ item.user_phone_number }}"
+      UserType: "{{ item.user_role }}"
+  loop: "{{ users }}"
+  loop_control:
+    label: "{{ item.user_email_address }}"
+  register: results
+  become: true
+  become_method: runas
+  become_user: svc_account
+  tags:
+    - create
+    - ad_users
+
+- name: Collect results into clean array
+  set_fact:
+    user_results_array: >-
+      {{
+        (user_results_array | default([])) +
+        [ (item.output[0] | from_json) ]
+      }}
+  loop: "{{ results.results | default([]) }}"
+  loop_control:
+    label: "{{ item.item.user_email_address }}"
+  tags:
+    - collect
+    - results
+
+- name: Add job_name outside array
+  set_fact:
+    job_name: "bulk_ad_user_create"
+    request_number : "{{ users_json.request_number }}"
+    user_results: 
+      user_results_array: "{{ user_results_array }}"
+  tags:
+    - finalize
+    - results
