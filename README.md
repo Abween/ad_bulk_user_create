@@ -40,28 +40,3 @@ users_json:
       user_type: "OU=Employees,DC=corp,DC=example,DC=com"
       user_description: "Marketing Specialist"
       user_phone_number: "+1-555-1234"
-
-## 📤 Role Output
-  request_number: "12345"
-  user_results_array:
-    - userExists: false
-      userCreated: true
-      creationError: ""
-      creationStatus: "User Alice Smith created successfully."
-      userFirstName: "Alice"
-      userId: "asmith"
-      tempPassword: "Xy7!rT9@wL2#"
-      emailAddress: "alice.smith@demo.local"
-
-    - userExists: true
-      userCreated: false
-      creationError: ""
-      creationStatus: "User already exists in domain demo.local."
-      userFirstName: "Bob"
-      userId: "bjones"
-      userPrincipal: "bjones@demo.local"
-      userDN: "CN=Bob Jones,OU=Admins,DC=demo,DC=local"
-      emailAddress: "bob.jones@demo.local"
-      tempPassword: ""
-
-
