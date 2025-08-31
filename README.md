@@ -37,6 +37,6 @@ users_json:
       user_last_name: "Carter"
       user_email_address: "james.carter@example.com"
       user_domain: "corp.example.com"
-      user_type: "OU=Employees,DC=corp,DC=example,DC=com"
+      user_role: "OU=Employees,DC=corp,DC=example,DC=com"
       user_description: "Marketing Specialist"
       user_phone_number: "+1-555-1234"
