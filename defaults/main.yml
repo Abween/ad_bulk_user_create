@@ -1,0 +1,6 @@
+---
+# Default values for ad_bulk_user_create
+
+users_json:
+  request_number: "REQ-0000"  # Default request ID for tracking
+  Users: []
