@@ -1,0 +1,17 @@
+---
+- name: Test ad_bulk_user_create role
+  hosts: windows_domain_controller
+  gather_facts: false
+  vars:
+    users_json:
+      request_number: "REQ-TEST-0001"
+      Users:
+        - user_description: "Test Account"
+          user_domain: "demo-local.com"
+          user_email_address: "test.user@demo.com"
+          user_first_name: "Test"
+          user_last_name: "User"
+          user_phone_number: "+10000000000"
+          user_role: "OU=Test,DC=demo,DC=local"
+  roles:
+    - role: ad_bulk_user_create
