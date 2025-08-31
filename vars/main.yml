@@ -1,0 +1,18 @@
+users_json:
+  request_number: "12345" # Unique request ID for audit tracking
+  Users:
+    - user_description: tester
+      user_domain: demo-local@example.com
+      user_email_address: alice.smith@demo.com
+      user_first_name: Alice
+      user_last_name: Smith
+      user_phone_number: "+1230000001"
+      user_role: "OU=Admins,DC=demo,DC=local" 
+
+    - user_description: developer
+      user_domain: demo-local@example.com
+      user_email_address: bob.jones@demo.com
+      user_first_name: Bob
+      user_last_name: Jones
+      user_phone_number: "+11230000002"
+      user_role: "OU=Admins,DC=demo,DC=local"
